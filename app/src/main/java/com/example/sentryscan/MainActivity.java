@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.sentryscan.controller.ScanFacade;
 import com.example.sentryscan.database.DatabaseHelper;
 import com.example.sentryscan.model.CveEntry;
 import com.example.sentryscan.model.OpenPort;
@@ -42,20 +43,19 @@ public class MainActivity extends AppCompatActivity {
         scroll.addView(out);
         root.addView(scroll);
         out.setText("Scanning...");
+        out.setText("Scanning...");
         new Thread(() -> {
-            VulnerabilityMatcher matcher = new VulnerabilityMatcher(this);
-            String[] banners = {
-                    "SSH-2.0-OpenSSH_7.7",
-                    "220 (vsFTPd 2.3.4)",
-                    "Server: Apache/2.4.49 (Unix)",
-                    "HTTP/1.1 404 Not Found"
-            };
-            StringBuilder sb = new StringBuilder("Matcher test\n\n");
-            for (String b : banners) {
-                List<CveEntry> hits = matcher.match(b);
-                sb.append(b).append("\n  -> ").append(hits.size())
-                        .append(" match(es), risk ").append(matcher.riskLevel(hits)).append("\n\n");
+            ScanFacade facade = new ScanFacade(this);
+            ScanResult r = facade.runScan("192.168.100.1", "common", null);
+            StringBuilder sb = new StringBuilder();
+            sb.append("Target: ").append(r.getTarget()).append("\n");
+            sb.append("Date: ").append(r.getDate()).append("\n");
+            sb.append("Risk: ").append(r.getRiskLevel()).append("\n");
+            sb.append("Open ports: ").append(r.getOpenPorts().size()).append("\n");
+            for (OpenPort p : r.getOpenPorts()) {
+                sb.append("  ").append(p.getPort()).append(" ").append(p.getService()).append("\n");
             }
+            sb.append("\nScans saved in history: ").append(facade.getHistory().size());
             runOnUiThread(() -> out.setText(sb.toString()));
         }).start();
         setContentView(root);
