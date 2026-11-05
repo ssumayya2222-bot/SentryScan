@@ -13,6 +13,7 @@ import com.example.sentryscan.database.DatabaseHelper;
 import com.example.sentryscan.model.CveEntry;
 import com.example.sentryscan.model.OpenPort;
 import com.example.sentryscan.model.ScanResult;
+import com.example.sentryscan.scanner.CommonPortScanner;
 import com.example.sentryscan.view.VulnDbActivity;
 
 import java.util.List;
@@ -38,6 +39,19 @@ public class MainActivity extends AppCompatActivity {
         ScrollView scroll = new ScrollView(this);
         scroll.addView(out);
         root.addView(scroll);
+        out.setText("Scanning...");
+        new Thread(() -> {
+            List<OpenPort> ports = new CommonPortScanner().scan("192.168.100.1");
+            StringBuilder sb = new StringBuilder("Scan of 192.168.100.1\n");
+            if (ports.isEmpty()) {
+                sb.append("No open ports found");
+            }
+            for (OpenPort p : ports) {
+                sb.append(p.getPort()).append(" ").append(p.getService())
+                        .append(" | ").append(p.getBanner()).append("\n");
+            }
+            runOnUiThread(() -> out.setText(sb.toString()));
+        }).start();
         setContentView(root);
 
         // Singleton check: two requests must give the same object
