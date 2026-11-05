@@ -14,6 +14,7 @@ import com.example.sentryscan.model.CveEntry;
 import com.example.sentryscan.model.OpenPort;
 import com.example.sentryscan.model.ScanResult;
 import com.example.sentryscan.scanner.CommonPortScanner;
+import com.example.sentryscan.scanner.ScannerFactory;
 import com.example.sentryscan.view.VulnDbActivity;
 
 import java.util.List;
@@ -41,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         root.addView(scroll);
         out.setText("Scanning...");
         new Thread(() -> {
-            List<OpenPort> ports = new CommonPortScanner().scan("192.168.100.1");
+            List<OpenPort> ports = ScannerFactory.getScanner("common").scan("192.168.100.1");
             StringBuilder sb = new StringBuilder("Scan of 192.168.100.1\n");
             if (ports.isEmpty()) {
                 sb.append("No open ports found");
