@@ -3,23 +3,18 @@ package com.example.sentryscan;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.sentryscan.controller.ScanFacade;
-import com.example.sentryscan.database.DatabaseHelper;
-import com.example.sentryscan.model.CveEntry;
+import com.example.sentryscan.controller.ScanController;
 import com.example.sentryscan.model.OpenPort;
 import com.example.sentryscan.model.ScanResult;
-import com.example.sentryscan.scanner.CommonPortScanner;
-import com.example.sentryscan.scanner.ScannerFactory;
-import com.example.sentryscan.scanner.VulnerabilityMatcher;
 import com.example.sentryscan.view.VulnDbActivity;
-
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,65 +22,64 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        ScanController controller = new ScanController(this);
+
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(32, 96, 32, 32);
 
+        // UC1: Enter Target
+        EditText etTarget = new EditText(this);
+        etTarget.setHint("Target IP or hostname (e.g. 192.168.100.1)");
+        etTarget.setSingleLine(true);
+        root.addView(etTarget);
+
+        // UC2: Start Scan
+        Button btnScan = new Button(this);
+        btnScan.setText("Start Scan");
+        root.addView(btnScan);
+
+        // UC10: Manage Vulnerability DB
         Button btnVulnDb = new Button(this);
         btnVulnDb.setText("Manage Vulnerability DB");
         btnVulnDb.setOnClickListener(v ->
                 startActivity(new Intent(this, VulnDbActivity.class)));
         root.addView(btnVulnDb);
 
+        // Result area
         TextView out = new TextView(this);
         out.setTextSize(16);
         ScrollView scroll = new ScrollView(this);
         scroll.addView(out);
         root.addView(scroll);
-        out.setText("Scanning...");
-        out.setText("Scanning...");
-        new Thread(() -> {
-            ScanFacade facade = new ScanFacade(this);
-            ScanResult r = facade.runScan("192.168.100.1", "common", null);
-            StringBuilder sb = new StringBuilder();
-            sb.append("Target: ").append(r.getTarget()).append("\n");
-            sb.append("Date: ").append(r.getDate()).append("\n");
-            sb.append("Risk: ").append(r.getRiskLevel()).append("\n");
-            sb.append("Open ports: ").append(r.getOpenPorts().size()).append("\n");
-            for (OpenPort p : r.getOpenPorts()) {
-                sb.append("  ").append(p.getPort()).append(" ").append(p.getService()).append("\n");
-            }
-            sb.append("\nScans saved in history: ").append(facade.getHistory().size());
-            runOnUiThread(() -> out.setText(sb.toString()));
-        }).start();
+
         setContentView(root);
 
-        // Singleton check: two requests must give the same object
-        DatabaseHelper db = DatabaseHelper.getInstance(this);
-        DatabaseHelper again = DatabaseHelper.getInstance(this);
-        out.append("Singleton check, same object? " + (db == again) + "\n\n");
+        btnScan.setOnClickListener(v -> {
+            String target = etTarget.getText().toString();
+            if (target.trim().isEmpty()) {
+                Toast.makeText(this, "Please enter a target", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            btnScan.setEnabled(false);
+            out.setText("Scanning " + target.trim() + " ...");
 
-        // save a scan
-        ScanResult r = new ScanResult("192.168.1.10", "2026-11-01");
-        r.addOpenPort(new OpenPort(21, "FTP", "220 vsFTPd 2.3.4"));
-        r.addOpenPort(new OpenPort(80, "HTTP", "Apache/2.4.49"));
-        r.setRiskLevel("High");
-        long id = db.saveScan(r);
-        out.append("Saved scan with id " + id + "\n\n");
-
-        // read the scans back
-        List<ScanResult> scans = db.getAllScans();
-        out.append("Scans in the database: " + scans.size() + "\n");
-        for (ScanResult s : scans) {
-            out.append("- " + s.getTarget() + " | risk " + s.getRiskLevel()
-                    + " | " + s.getOpenPorts().size() + " open ports\n");
-        }
-
-        // read the CVE rows
-        out.append("\nCVE entries:\n");
-        for (CveEntry e : db.getAllCves()) {
-            out.append("- " + e.getCveId() + " " + e.getService() + " "
-                    + e.getVersion() + " (" + e.getSeverity() + ")\n");
-        }
+            new Thread(() -> {
+                ScanResult r = controller.onStartScan(target, "common", null);
+                StringBuilder sb = new StringBuilder();
+                sb.append("Target: ").append(r.getTarget()).append("\n");
+                sb.append("Date: ").append(r.getDate()).append("\n");
+                sb.append("Risk: ").append(r.getRiskLevel()).append("\n");
+                sb.append("Open ports: ").append(r.getOpenPorts().size()).append("\n");
+                for (OpenPort p : r.getOpenPorts()) {
+                    sb.append("  ").append(p.getPort()).append(" ")
+                            .append(p.getService()).append("\n");
+                }
+                runOnUiThread(() -> {
+                    out.setText(sb.toString());
+                    btnScan.setEnabled(true);
+                });
+            }).start();
+        });
     }
 }
