@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.sentryscan.controller.ScanController;
 import com.example.sentryscan.model.OpenPort;
 import com.example.sentryscan.model.ScanResult;
+import com.example.sentryscan.view.HistoryActivity;
 import com.example.sentryscan.view.VulnDbActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -46,6 +47,12 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(this, VulnDbActivity.class)));
         root.addView(btnVulnDb);
 
+        // UC9: View Scan History
+        Button btnHistory = new Button(this);
+        btnHistory.setText("Scan History");
+        btnHistory.setOnClickListener(v ->
+                startActivity(new Intent(this, HistoryActivity.class)));
+        root.addView(btnHistory);
         // Result area
         TextView out = new TextView(this);
         out.setTextSize(16);

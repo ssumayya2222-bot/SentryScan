@@ -49,4 +49,7 @@ public class ScanFacade {
     public List<ScanResult> getHistory() {
         return db.getAllScans();
     }
+    public void deleteScan(int id) {
+        db.deleteScan(id);
+    }
 }

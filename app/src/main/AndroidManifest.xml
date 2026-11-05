@@ -18,6 +18,9 @@
             android:name=".view.VulnDbActivity"
             android:exported="false" />
         <activity
+            android:name=".view.HistoryActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

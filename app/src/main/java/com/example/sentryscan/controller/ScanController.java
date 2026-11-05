@@ -25,4 +25,7 @@ public class ScanController {
     public List<ScanResult> onViewHistory() {
         return facade.getHistory();
     }
+    public void onDeleteScan(int id) {
+        facade.deleteScan(id);
+    }
 }
