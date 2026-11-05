@@ -1,6 +1,9 @@
 package com.example.sentryscan;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -10,6 +13,7 @@ import com.example.sentryscan.database.DatabaseHelper;
 import com.example.sentryscan.model.CveEntry;
 import com.example.sentryscan.model.OpenPort;
 import com.example.sentryscan.model.ScanResult;
+import com.example.sentryscan.view.VulnDbActivity;
 
 import java.util.List;
 
@@ -19,12 +23,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(32, 96, 32, 32);
+
+        Button btnVulnDb = new Button(this);
+        btnVulnDb.setText("Manage Vulnerability DB");
+        btnVulnDb.setOnClickListener(v ->
+                startActivity(new Intent(this, VulnDbActivity.class)));
+        root.addView(btnVulnDb);
+
         TextView out = new TextView(this);
-        out.setPadding(32, 96, 32, 32);
         out.setTextSize(16);
         ScrollView scroll = new ScrollView(this);
         scroll.addView(out);
-        setContentView(scroll);
+        root.addView(scroll);
+        setContentView(root);
 
         // Singleton check: two requests must give the same object
         DatabaseHelper db = DatabaseHelper.getInstance(this);
@@ -47,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
                     + " | " + s.getOpenPorts().size() + " open ports\n");
         }
 
-        // read the sample CVE rows
+        // read the CVE rows
         out.append("\nCVE entries:\n");
         for (CveEntry e : db.getAllCves()) {
             out.append("- " + e.getCveId() + " " + e.getService() + " "
