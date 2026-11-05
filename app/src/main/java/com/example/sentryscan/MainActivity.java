@@ -15,6 +15,7 @@ import com.example.sentryscan.model.OpenPort;
 import com.example.sentryscan.model.ScanResult;
 import com.example.sentryscan.scanner.CommonPortScanner;
 import com.example.sentryscan.scanner.ScannerFactory;
+import com.example.sentryscan.scanner.VulnerabilityMatcher;
 import com.example.sentryscan.view.VulnDbActivity;
 
 import java.util.List;
@@ -42,14 +43,18 @@ public class MainActivity extends AppCompatActivity {
         root.addView(scroll);
         out.setText("Scanning...");
         new Thread(() -> {
-            List<OpenPort> ports = ScannerFactory.getScanner("common").scan("192.168.100.1");
-            StringBuilder sb = new StringBuilder("Scan of 192.168.100.1\n");
-            if (ports.isEmpty()) {
-                sb.append("No open ports found");
-            }
-            for (OpenPort p : ports) {
-                sb.append(p.getPort()).append(" ").append(p.getService())
-                        .append(" | ").append(p.getBanner()).append("\n");
+            VulnerabilityMatcher matcher = new VulnerabilityMatcher(this);
+            String[] banners = {
+                    "SSH-2.0-OpenSSH_7.7",
+                    "220 (vsFTPd 2.3.4)",
+                    "Server: Apache/2.4.49 (Unix)",
+                    "HTTP/1.1 404 Not Found"
+            };
+            StringBuilder sb = new StringBuilder("Matcher test\n\n");
+            for (String b : banners) {
+                List<CveEntry> hits = matcher.match(b);
+                sb.append(b).append("\n  -> ").append(hits.size())
+                        .append(" match(es), risk ").append(matcher.riskLevel(hits)).append("\n\n");
             }
             runOnUiThread(() -> out.setText(sb.toString()));
         }).start();
