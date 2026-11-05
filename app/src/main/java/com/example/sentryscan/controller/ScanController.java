@@ -2,6 +2,7 @@ package com.example.sentryscan.controller;
 
 import android.content.Context;
 
+import com.example.sentryscan.model.CveEntry;
 import com.example.sentryscan.model.ScanResult;
 
 import java.util.List;
@@ -27,5 +28,8 @@ public class ScanController {
     }
     public void onDeleteScan(int id) {
         facade.deleteScan(id);
+    }
+    public List<CveEntry> onMatchBanner(String banner) {
+        return facade.matchBanner(banner);
     }
 }

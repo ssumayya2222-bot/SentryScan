@@ -52,4 +52,7 @@ public class ScanFacade {
     public void deleteScan(int id) {
         db.deleteScan(id);
     }
+    public List<CveEntry> matchBanner(String banner) {
+        return matcher.match(banner);
+    }
 }

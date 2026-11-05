@@ -15,6 +15,7 @@ import com.example.sentryscan.controller.ScanController;
 import com.example.sentryscan.model.OpenPort;
 import com.example.sentryscan.model.ScanResult;
 import com.example.sentryscan.view.HistoryActivity;
+import com.example.sentryscan.view.ResultsActivity;
 import com.example.sentryscan.view.VulnDbActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -85,6 +86,9 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     out.setText(sb.toString());
                     btnScan.setEnabled(true);
+                    Intent i = new Intent(this, ResultsActivity.class);
+                    i.putExtra(ResultsActivity.EXTRA_SCAN_ID, r.getId());
+                    startActivity(i);
                 });
             }).start();
         });
