@@ -12,6 +12,13 @@ import com.example.sentryscan.model.CveEntry;
 import com.example.sentryscan.model.OpenPort;
 import com.example.sentryscan.model.ScanResult;
 
+import android.content.Intent;
+import android.net.Uri;
+import android.widget.Button;
+import android.widget.Toast;
+import androidx.core.content.FileProvider;
+import java.io.File;
+
 import java.util.List;
 
 public class ResultsActivity extends AppCompatActivity {
@@ -23,15 +30,15 @@ public class ResultsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ScanController controller = new ScanController(this);
 
-        // Find the scan we were asked to show
         int scanId = getIntent().getIntExtra(EXTRA_SCAN_ID, -1);
-        ScanResult result = null;
+        ScanResult found = null;
         for (ScanResult r : controller.onViewHistory()) {
             if (r.getId() == scanId) {
-                result = r;
+                found = r;
                 break;
             }
         }
+        final ScanResult result = found;
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -41,6 +48,13 @@ public class ResultsActivity extends AppCompatActivity {
         title.setText("Scan Results");
         title.setTextSize(22);
         root.addView(title);
+
+        // UC8: Export Report
+        Button btnExport = new Button(this);
+        btnExport.setText("Export Report");
+        btnExport.setEnabled(result != null);
+        btnExport.setOnClickListener(v -> exportReport(controller, result));
+        root.addView(btnExport);
 
         TextView body = new TextView(this);
         body.setTextSize(16);
@@ -52,6 +66,20 @@ public class ResultsActivity extends AppCompatActivity {
         scroll.addView(body);
         root.addView(scroll);
         setContentView(root);
+    }
+
+    private void exportReport(ScanController controller, ScanResult result) {
+        File file = controller.onExportReport(result);
+        if (file == null) {
+            Toast.makeText(this, "Could not create the report", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
+        Intent send = new Intent(Intent.ACTION_SEND);
+        send.setType("text/html");
+        send.putExtra(Intent.EXTRA_STREAM, uri);
+        send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(Intent.createChooser(send, "Share report"));
     }
 
     // The text for the whole page

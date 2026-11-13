@@ -5,6 +5,7 @@ import android.content.Context;
 import com.example.sentryscan.model.CveEntry;
 import com.example.sentryscan.model.ScanResult;
 
+import java.io.File;
 import java.util.List;
 
 public class ScanController {
@@ -31,5 +32,8 @@ public class ScanController {
     }
     public List<CveEntry> onMatchBanner(String banner) {
         return facade.matchBanner(banner);
+    }
+    public File onExportReport(ScanResult result) {
+        return facade.exportReport(result);
     }
 }

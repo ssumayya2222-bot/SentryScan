@@ -6,6 +6,7 @@ import com.example.sentryscan.database.DatabaseHelper;
 import com.example.sentryscan.model.CveEntry;
 import com.example.sentryscan.model.OpenPort;
 import com.example.sentryscan.model.ScanResult;
+import com.example.sentryscan.report.ReportGenerator;
 import com.example.sentryscan.scanner.Scanner;
 import com.example.sentryscan.scanner.ScannerFactory;
 import com.example.sentryscan.scanner.VulnerabilityMatcher;
@@ -16,14 +17,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import java.io.File;
+import java.io.IOException;
+import com.example.sentryscan.report.ReportGenerator;
+
 public class ScanFacade {
 
     private final DatabaseHelper db;
     private final VulnerabilityMatcher matcher;
+    private final ReportGenerator reportGenerator;
 
     public ScanFacade(Context context) {
         this.db = DatabaseHelper.getInstance(context);
         this.matcher = new VulnerabilityMatcher(context);
+        this.reportGenerator = new ReportGenerator(context);
     }
 
     // One call does everything: scan, match, rate the risk, save
@@ -54,5 +61,12 @@ public class ScanFacade {
     }
     public List<CveEntry> matchBanner(String banner) {
         return matcher.match(banner);
+    }
+    public File exportReport(ScanResult result) {
+        try {
+            return reportGenerator.generate(result);
+        } catch (IOException e) {
+            return null;
+        }
     }
 }
