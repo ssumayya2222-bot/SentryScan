@@ -73,7 +73,10 @@ public class MainActivity extends AppCompatActivity {
             out.setText("Scanning " + target.trim() + " ...");
 
             new Thread(() -> {
-                ScanResult r = controller.onStartScan(target, "common", null);
+                ScanResult r = controller.onStartScan(target, "common", null,
+                        (done, total, port) -> runOnUiThread(() ->
+                                out.setText("Scanning port " + port
+                                        + " (" + done + " of " + total + ")")));
                 StringBuilder sb = new StringBuilder();
                 sb.append("Target: ").append(r.getTarget()).append("\n");
                 sb.append("Date: ").append(r.getDate()).append("\n");

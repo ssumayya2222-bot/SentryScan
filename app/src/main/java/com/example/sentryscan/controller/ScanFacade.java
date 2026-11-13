@@ -1,5 +1,6 @@
 package com.example.sentryscan.controller;
 
+import com.example.sentryscan.scanner.ProgressListener;
 import android.content.Context;
 
 import com.example.sentryscan.database.DatabaseHelper;
@@ -34,9 +35,10 @@ public class ScanFacade {
     }
 
     // One call does everything: scan, match, rate the risk, save
-    public ScanResult runScan(String target, String mode, List<Integer> customPorts) {
+    public ScanResult runScan(String target, String mode, List<Integer> customPorts,
+                              ProgressListener listener) {
         Scanner scanner = ScannerFactory.getScanner(mode, customPorts);
-        List<OpenPort> ports = scanner.scan(target);
+        List<OpenPort> ports = scanner.scan(target, listener);
 
         String date = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
                 .format(new Date());
@@ -68,5 +70,8 @@ public class ScanFacade {
         } catch (IOException e) {
             return null;
         }
+    }
+    public ScanResult runScan(String target, String mode, List<Integer> customPorts) {
+        return runScan(target, mode, customPorts, null);
     }
 }

@@ -17,8 +17,17 @@ public class CommonPortScanner implements Scanner {
 
     @Override
     public List<OpenPort> scan(String target) {
+        return scan(target, null);
+    }
+
+    @Override
+    public List<OpenPort> scan(String target, ProgressListener listener) {
         List<OpenPort> found = new ArrayList<>();
-        for (int port : PORTS) {
+        for (int i = 0; i < PORTS.length; i++) {
+            int port = PORTS[i];
+            if (listener != null) {
+                listener.onProgress(i + 1, PORTS.length, port);
+            }
             if (isOpen(target, port)) {
                 String banner = grabBanner(target, port);
                 found.add(new OpenPort(port, serviceName(port), banner));

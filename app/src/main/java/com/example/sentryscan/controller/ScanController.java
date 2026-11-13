@@ -1,5 +1,6 @@
 package com.example.sentryscan.controller;
 
+import com.example.sentryscan.scanner.ProgressListener;
 import android.content.Context;
 
 import com.example.sentryscan.model.CveEntry;
@@ -35,5 +36,13 @@ public class ScanController {
     }
     public File onExportReport(ScanResult result) {
         return facade.exportReport(result);
+    }
+
+    public ScanResult onStartScan(String target, String mode, List<Integer> customPorts,
+                                  ProgressListener listener) {
+        if (target == null || target.trim().isEmpty()) {
+            return null;
+        }
+        return facade.runScan(target.trim(), mode, customPorts, listener);
     }
 }

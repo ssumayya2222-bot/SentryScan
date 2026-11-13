@@ -21,8 +21,17 @@ public class CustomPortScanner implements Scanner {
 
     @Override
     public List<OpenPort> scan(String target) {
+        return scan(target, null);
+    }
+
+    @Override
+    public List<OpenPort> scan(String target, ProgressListener listener) {
         List<OpenPort> found = new ArrayList<>();
-        for (int port : ports) {
+        for (int i = 0; i < ports.size(); i++) {
+            int port = ports.get(i);
+            if (listener != null) {
+                listener.onProgress(i + 1, ports.size(), port);
+            }
             if (isOpen(target, port)) {
                 found.add(new OpenPort(port, serviceName(port), grabBanner(target, port)));
             }
