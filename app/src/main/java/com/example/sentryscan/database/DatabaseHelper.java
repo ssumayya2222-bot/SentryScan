@@ -48,7 +48,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "Path traversal in Apache HTTP Server 2.4.49");
         seed(db, "CVE-2018-15473", "OpenSSH", "7.7", "Medium",
                 "OpenSSH user enumeration through authentication timing");
-        seed(db, "CVE-2017-0144", "SMB", "1", "Critical",
+        seed(db, "CVE-2017-0144", "SMB", "1", "High",
                 "SMBv1 remote code execution (EternalBlue)");
     }
 
