@@ -1,5 +1,8 @@
 package com.example.sentryscan.controller;
 
+import com.example.sentryscan.scanner.HostListener;
+import java.net.InetAddress;
+
 import com.example.sentryscan.scanner.ProgressListener;
 import android.content.Context;
 
@@ -73,5 +76,32 @@ public class ScanFacade {
     }
     public ScanResult runScan(String target, String mode, List<Integer> customPorts) {
         return runScan(target, mode, customPorts, null);
+    }
+    // Scans every live address in the list; each live host is saved as its own scan
+    public List<ScanResult> runRangeScan(List<String> hosts, String mode,
+                                         List<Integer> customPorts,
+                                         HostListener hostListener,
+                                         ProgressListener portListener) {
+        List<ScanResult> results = new ArrayList<>();
+        for (int i = 0; i < hosts.size(); i++) {
+            String host = hosts.get(i);
+            if (hostListener != null) {
+                hostListener.onHost(i + 1, hosts.size(), host);
+            }
+            if (!isHostUp(host)) {
+                continue;   // nobody home, skip it
+            }
+            results.add(runScan(host, mode, customPorts, portListener));
+        }
+        return results;
+    }
+
+    // Does this address answer within half a second?
+    private boolean isHostUp(String host) {
+        try {
+            return InetAddress.getByName(host).isReachable(500);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

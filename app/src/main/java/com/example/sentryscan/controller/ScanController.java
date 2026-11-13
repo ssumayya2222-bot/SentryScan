@@ -1,5 +1,8 @@
 package com.example.sentryscan.controller;
 
+import com.example.sentryscan.scanner.HostListener;
+import com.example.sentryscan.scanner.IpRange;
+
 import com.example.sentryscan.scanner.ProgressListener;
 import android.content.Context;
 
@@ -44,5 +47,16 @@ public class ScanController {
             return null;
         }
         return facade.runScan(target.trim(), mode, customPorts, listener);
+    }
+    // Returns null if the text is not a valid range (or has more than 50 addresses)
+    public List<ScanResult> onStartRangeScan(String rangeText, String mode,
+                                             List<Integer> customPorts,
+                                             HostListener hostListener,
+                                             ProgressListener portListener) {
+        List<String> hosts = IpRange.expand(rangeText);
+        if (hosts.isEmpty()) {
+            return null;
+        }
+        return facade.runRangeScan(hosts, mode, customPorts, hostListener, portListener);
     }
 }

@@ -1,5 +1,8 @@
 package com.example.sentryscan;
 
+import com.example.sentryscan.scanner.IpRange;
+import java.util.List;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -64,30 +67,49 @@ public class MainActivity extends AppCompatActivity {
         setContentView(root);
 
         btnScan.setOnClickListener(v -> {
-            String target = etTarget.getText().toString();
-            if (target.trim().isEmpty()) {
+            final String target = etTarget.getText().toString().trim();
+            if (target.isEmpty()) {
                 Toast.makeText(this, "Please enter a target", Toast.LENGTH_SHORT).show();
                 return;
             }
             btnScan.setEnabled(false);
-            out.setText("Scanning " + target.trim() + " ...");
 
+            if (IpRange.isRange(target)) {
+                // A range like 192.168.100.1-5
+                out.setText("Checking range " + target + " ...");
+                final String[] label = {""};
+                new Thread(() -> {
+                    List<ScanResult> results = controller.onStartRangeScan(target, "common", null,
+                            (number, total, host) -> {
+                                label[0] = "Host " + number + " of " + total + " (" + host + ")";
+                                runOnUiThread(() -> out.setText(label[0]));
+                            },
+                            (done, total, port) -> runOnUiThread(() ->
+                                    out.setText(label[0] + "\nPort " + port
+                                            + " (" + done + " of " + total + ")")));
+                    runOnUiThread(() -> {
+                        btnScan.setEnabled(true);
+                        if (results == null) {
+                            out.setText("Invalid range. Use a format like 192.168.100.1-20 "
+                                    + "(last number only, maximum 50 addresses).");
+                        } else {
+                            out.setText("Range scan finished. Live hosts scanned: "
+                                    + results.size());
+                            startActivity(new Intent(this, HistoryActivity.class));
+                        }
+                    });
+                }).start();
+                return;
+            }
+
+            // A single IP or hostname
+            out.setText("Scanning " + target + " ...");
             new Thread(() -> {
                 ScanResult r = controller.onStartScan(target, "common", null,
                         (done, total, port) -> runOnUiThread(() ->
                                 out.setText("Scanning port " + port
                                         + " (" + done + " of " + total + ")")));
-                StringBuilder sb = new StringBuilder();
-                sb.append("Target: ").append(r.getTarget()).append("\n");
-                sb.append("Date: ").append(r.getDate()).append("\n");
-                sb.append("Risk: ").append(r.getRiskLevel()).append("\n");
-                sb.append("Open ports: ").append(r.getOpenPorts().size()).append("\n");
-                for (OpenPort p : r.getOpenPorts()) {
-                    sb.append("  ").append(p.getPort()).append(" ")
-                            .append(p.getService()).append("\n");
-                }
                 runOnUiThread(() -> {
-                    out.setText(sb.toString());
                     btnScan.setEnabled(true);
                     Intent i = new Intent(this, ResultsActivity.class);
                     i.putExtra(ResultsActivity.EXTRA_SCAN_ID, r.getId());
