@@ -55,3 +55,27 @@ SQLite through DatabaseHelper, with three tables: scans, open_ports and cve_entr
 ## Ethical use
 
 Only scan devices and networks you own or have written permission to test.
+
+## Website
+
+The `website` folder holds the SentryScan website, built with PHP and MySQL.
+
+Pages:
+
+- Home (index.php)
+- Sign up (signup.php): saves a new user, with the password stored as a hash
+- Sign in (signin.php) and Log out (logout.php): checks the password against the stored hash
+- Contact us (contact.php): saves the message in the database
+
+Security measures: prepared statements (against SQL injection), password hashing, a form token on every form, and escaped output.
+
+How to run it:
+
+1. Install XAMPP and start Apache and MySQL.
+2. Copy the `website` folder to `C:\xampp\htdocs\sentryscan_web`.
+3. In phpMyAdmin, open the SQL tab, paste the contents of `website/database.sql` and click Go.
+4. Open http://localhost/sentryscan_web/ in a browser.
+
+The database settings in `includes/db.php` are the XAMPP defaults (user root, empty password). They are for local use only.
+
+Screenshots of each page are in `screenshots/website`.
